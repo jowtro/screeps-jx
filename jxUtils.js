@@ -45,7 +45,7 @@ var jxUtils = {
     },
 
     findEnergyDropped: function (creep) {
-        var energy = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 100)
+        var energy = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES)
         if (energy.length > 0) {
             creep.memory.gettingDroppedEnergy = true
             const target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES)
@@ -77,30 +77,25 @@ var jxUtils = {
         }
     },
     getEnergy: creep => {
-      let container = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+        const extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
             filter: (s) => {
-                return (s.structureType === STRUCTURE_SPAWN ||
-                    s.structureType === STRUCTURE_EXTENSION ) && s.energy < s.energyCapacity
+                return (s.structureType === STRUCTURE_EXTENSION) && s.energy > 0
             }
         })
-        
-        if(container === undefined){
-            container = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+        //Container isn't considered your structure that's why we don't use FIND_MY_STRUCTURE!
+        const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: (s) => {
-            return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] < s.store.getCapacity()
+                return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] > 0
             }
-            })
-        }
-        
-        if (container != undefined) {
-            //console.log(`${creep.name} Containers que estão cheios: ${container}`)
-            if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(container)
+        })
+        console.log(`Extension: ${extension} Container: ${container}`)
+        if (extension != null || container != null) {
+            if (creep.withdraw(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.say('⚡', false)
+                creep.moveTo(container != null ? container : extension)
             }
-        } else {
-            creep.pos.findClosestByRange(FIND_MY_SPAWNS)
-            creep.say('no Energy',false)
         }
+
     },
     equalizeEnergyBetweenStorages: creep => {
         if (creep.carry.energy == creep.carryCapacity) {

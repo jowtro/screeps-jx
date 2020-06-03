@@ -17,10 +17,9 @@ var roleBuilder = {
 		//If Building
 		if (creep.memory.building) {
 			if (Game.flags[creep.memory.FlagIr].room != creep.room) {
-				//console.log(`movendo para contruir`)
+				console.log(`moving to build`)
 				creep.moveTo(creep.pos.findClosestByPath(creep.room.findExitTo(creep.memory.FlagIr)))
 			} else if (Game.flags[creep.memory.FlagIr].room == creep.room) {
-				//console.log(`construindo`)
 				var targets = creep.room.find(FIND_CONSTRUCTION_SITES)
 				if (targets.length > 0 && creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(targets[0], { visualizePathStyle: { stroke: '#CCC' } })
