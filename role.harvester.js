@@ -1,25 +1,24 @@
 let jxUtils = require("jxUtils")
-const optionsVisual = { visualizePathStyle: { stroke: '#74FE63' } }
+const optionsVisual = { reusePath: 50, visualizePathStyle: { stroke: '#74FE63' } }
 
 function findGoStructuresToDeposit(creep) {
-    let target = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+    let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
         filter: (s) => {
             return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] < s.store.getCapacity()
         }
     })
-    if (target === null) {
-        target = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-            filter: (s) => {
-                return (s.structureType === STRUCTURE_SPAWN ||
-                    s.structureType === STRUCTURE_EXTENSION ||
-                    s.structureType === STRUCTURE_TOWER) && s.energy < s.energyCapacity
-            }
-        })
-    }
-    if (target !== undefined) {
-        if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            creep.say('Store ⚡', false)
-            creep.moveTo(target, optionsVisual)
+    let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+        filter: (s) => {
+            return (s.structureType === STRUCTURE_SPAWN ||
+                s.structureType === STRUCTURE_EXTENSION ||
+                s.structureType === STRUCTURE_TOWER) && s.energy < s.energyCapacity
+        }
+    })
+
+    if (extension != null || container != null) {
+        if (creep.transfer(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            creep.say('⚡', false)
+            creep.moveTo(container != null ? container : extension)
         }
     }
 }
@@ -72,7 +71,7 @@ var roleHarvester = {
                     }
                 }
             } catch (error) {
-                creep.say('PlaceFlag1',false)
+                creep.say('PlaceFlag1', false)
             }
 
         }

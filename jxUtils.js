@@ -88,7 +88,7 @@ var jxUtils = {
                 return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] > 0
             }
         })
-        console.log(`Extension: ${extension} Container: ${container}`)
+        //console.log(`Extension: ${extension} Container: ${container}`)
         if (extension != null || container != null) {
             if (creep.withdraw(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 creep.say('⚡', false)
