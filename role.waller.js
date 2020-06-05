@@ -1,8 +1,7 @@
 //if creep has nothing to do run as a builder
 var roleBuilder = require('role.builder')
 var percent = 0.001 // ex: 0.5 = 50%
-
-
+const optionsVisual = { reusePath: 50, visualizePathStyle: { stroke: '#74FE63' } }
 //Keep the maintenance of the base structure
 function maintainStructures(creep) {
     var structure = creep.room.find(FIND_STRUCTURES, {
@@ -14,7 +13,7 @@ function maintainStructures(creep) {
         //Give priority to the ramparts
         if (structure[0] !== undefined) {
             if (creep.repair(structure[0]) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(structure[0])
+                creep.moveTo(structure[0],optionsVisual)
             }
         }
     }
@@ -28,7 +27,7 @@ function maintainStructures(creep) {
         if (structure[0] !== undefined) {
             console.log(structure)
             if (creep.repair(structure) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(structure)
+                creep.moveTo(structure,optionsVisual)
             }
         } else {
             console.log(creep.name + " waller doesn't find anything to fix.")

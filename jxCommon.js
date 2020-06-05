@@ -1,7 +1,7 @@
 /*
  * Jonnas Schlottfeldt 21/08/2016
  * */
-var jxUtils = {
+var jxCommon = {
     //IF CREEPS are standing still.
     creepDoingNothing: creep => {
         if (undefined === creep.memory.currentPosList) {
@@ -68,9 +68,9 @@ var jxUtils = {
             Memory.sources['sources'][indexFound].creepsAt = --cnt
         }
     },
-    gotoHarvester: function (creep) {
+    goToHarvest: function (creep) {
         if (creep.memory.currentSource == undefined) {
-            jxUtils.findPlaceToHarvest(creep)
+            jxCommon.findPlaceToHarvest(creep)
         }
         if (creep.harvest(Game.getObjectById(creep.memory.currentSource)) == ERR_NOT_IN_RANGE) {
             creep.moveTo(Game.getObjectById(creep.memory.currentSource), { visualizePathStyle: { stroke: '#CCC' } })
@@ -97,22 +97,56 @@ var jxUtils = {
         }
 
     },
+    findGoSpawnToDeposit(creep) {
+        let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+            filter: (s) => {
+                return (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION ) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+            }
+        })
+        if (extension != null) {
+            if (creep.transfer(extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.say('⚡ dep', false)
+                creep.moveTo(extension)
+            }
+        }
+    },
+    findGoStructuresToDeposit(creep) {
+        let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+            filter: (s) => {
+                return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] < s.store.getCapacity()
+            }
+        })
+        let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+            filter: (s) => {
+                return (s.structureType === STRUCTURE_SPAWN ||
+                    s.structureType === STRUCTURE_EXTENSION ||
+                    s.structureType === STRUCTURE_TOWER) && s.energy < s.energyCapacity
+            }
+        })
+    
+        if (extension != null || container != null) {
+            if (creep.transfer(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.say('⚡', false)
+                creep.moveTo(container != null ? container : extension)
+            }
+        }
+    },
     equalizeEnergyBetweenStorages: creep => {
-        if (creep.carry.energy == creep.carryCapacity) {
-            var storage = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+        if (creep.carry.energy < creep.carryCapacity) {
+            //Container isn't considered your structure that's why we don't use FIND_MY_STRUCTURE!
+            const storage = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                 filter: (s) => {
-                    return (s.structureType == STRUCTURE_EXTENSION ||
-                        s.structureType == STRUCTURE_SPAWN) &&
-                        s.energy < s.energyCapacity * 0.1
+                    return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] > 0
                 }
             })
-            if (creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            if (creep.withdraw(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.say('⚡ eq', false)
                 creep.moveTo(storage)
             }
         } else {
-            jxUtils.findContainerToGet(creep)
+            jxCommon.findGoSpawnToDeposit(creep)
         }
     }
 }
 
-module.exports = jxUtils
+module.exports = jxCommon

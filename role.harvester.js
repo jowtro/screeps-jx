@@ -1,27 +1,5 @@
-let jxUtils = require("jxUtils")
+let jxCommon = require("jxCommon")
 const optionsVisual = { reusePath: 50, visualizePathStyle: { stroke: '#74FE63' } }
-
-function findGoStructuresToDeposit(creep) {
-    let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-        filter: (s) => {
-            return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] < s.store.getCapacity()
-        }
-    })
-    let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-        filter: (s) => {
-            return (s.structureType === STRUCTURE_SPAWN ||
-                s.structureType === STRUCTURE_EXTENSION ||
-                s.structureType === STRUCTURE_TOWER) && s.energy < s.energyCapacity
-        }
-    })
-
-    if (extension != null || container != null) {
-        if (creep.transfer(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            creep.say('⚡', false)
-            creep.moveTo(container != null ? container : extension)
-        }
-    }
-}
 
 function pickupEnergy(creep) {
     if (creep.carry.energy < creep.carryCapacity) {
@@ -64,10 +42,10 @@ var roleHarvester = {
                     creep.memory.currentSource = undefined
                 } else {
                     if (creep.memory.currentSource === undefined && Game.flags[creep.memory.FlagIr].room != undefined) {
-                        jxUtils.findPlaceToHarvest(creep)
+                        jxCommon.findPlaceToHarvest(creep)
                     } else {
                         pickupEnergy(creep)
-                        jxUtils.gotoHarvester(creep)
+                        jxCommon.goToHarvest(creep)
                     }
                 }
             } catch (error) {
@@ -77,7 +55,11 @@ var roleHarvester = {
         }
         else {
             //If it's not harvesting anymore it will find a place to drop its resources
-            findGoStructuresToDeposit(creep)
+            if(Memory.energyInStock < 180){
+                jxCommon.equalizeEnergyBetweenStorages(creep)
+            }else{
+                jxCommon.findGoStructuresToDeposit(creep)
+            }
         }
     }
 }

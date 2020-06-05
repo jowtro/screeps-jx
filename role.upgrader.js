@@ -1,4 +1,4 @@
-var jxUtils = require("jxUtils")
+var jxCommon = require("jxCommon")
 
 var roleUpgrader = {
 
@@ -19,7 +19,7 @@ var roleUpgrader = {
             }
         }
         else {
-           jxUtils.getEnergy(creep)
+           jxCommon.getEnergy(creep)
         }
     }
 }

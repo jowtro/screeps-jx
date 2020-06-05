@@ -1,4 +1,4 @@
-var jxUtils = require("jxUtils")
+var jxCommon = require("jxCommon")
 var roleBuilder = {
 
 	/** @param {Creep} creep **/
@@ -7,7 +7,7 @@ var roleBuilder = {
 		if (creep.memory.building && creep.carry.energy == 0) {
 			creep.memory.building = false
 			creep.say('🔄 harvest')
-			jxUtils.getEnergy(creep)
+			jxCommon.getEnergy(creep)
 		}
 		//If has energy start to build
 		if (!creep.memory.building && creep.carry.energy == creep.carryCapacity) {
@@ -27,7 +27,7 @@ var roleBuilder = {
 			}
 		}
 		else {
-			jxUtils.getEnergy(creep)
+			jxCommon.getEnergy(creep)
 		 }
 	}
 }
