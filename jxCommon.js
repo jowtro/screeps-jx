@@ -106,7 +106,7 @@ var jxCommon = {
         if (extension != null) {
             if (creep.transfer(extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 creep.say('⚡ dep', false)
-                creep.moveTo(extension)
+                creep.moveTo(extension,{visualizePathStyle: { stroke: '#74FE63' }})
             }
         }
     },
@@ -126,7 +126,7 @@ var jxCommon = {
     
         if (extension != null || container != null) {
             if (creep.transfer(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.say('⚡', false)
+                creep.say('fsd ⚡', false)
                 creep.moveTo(container != null ? container : extension)
             }
         }

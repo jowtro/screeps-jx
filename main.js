@@ -13,7 +13,7 @@ var _ = require('lodash')
 
 const flagAttack = 'atacar'
 const flagToConstruct = 'Flag1'
-const harvestersCnt = 4 //Give priority to Harvester
+const harvestersCnt = 6 //Give priority to Harvester
 const upgraderCnt = 1
 const engineersCnt = 1
 const warriorsCnt = 0

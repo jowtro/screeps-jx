@@ -44,7 +44,6 @@ var roleHarvester = {
                     if (creep.memory.currentSource === undefined && Game.flags[creep.memory.FlagIr].room != undefined) {
                         jxCommon.findPlaceToHarvest(creep)
                     } else {
-                        pickupEnergy(creep)
                         jxCommon.goToHarvest(creep)
                     }
                 }
@@ -55,11 +54,7 @@ var roleHarvester = {
         }
         else {
             //If it's not harvesting anymore it will find a place to drop its resources
-            if(Memory.energyInStock < 180){
-                jxCommon.equalizeEnergyBetweenStorages(creep)
-            }else{
-                jxCommon.findGoStructuresToDeposit(creep)
-            }
+            jxCommon.equalizeEnergyBetweenStorages(creep)
         }
     }
 }

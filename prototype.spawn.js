@@ -1,34 +1,26 @@
-module.exports = function() {
+module.exports = function () {
     // create a new function for StructureSpawn
     StructureSpawn.prototype.createCustomCreep =
-        function(energy, roleName) {
-             var body = []
+        function (energy, roleName) {
+            const specificJobs = ['warrior', 'scout']
+            var body = []
             // create a balanced body as big as possible with the given energy
             var numberOfParts = Math.floor(energy / 200)
-            if(roleName === 'scout' && energy >= 800){
-                body = [CLAIM,CARRY,CARRY,MOVE,WORK] //800 de energia
-            }else if (roleName === 'warrior' && energy >= 460) {
-                //body = [MOVE,MOVE,ATTACK,ATTACK,ATTACK] //340 de energia
-                body = [TOUGH,TOUGH,MOVE,MOVE,ATTACK,ATTACK]
-                //body =  [TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK]//460 de energia
-                //body = [TOUGH,TOUGH,MOVE,MOVE,RANGED_ATTACK] //270 de energy
-            }else if(roleName != 'warrior' && roleName != 'scout'){
-                for (let i = 0; i < numberOfParts; i++) {
-                    body.push(WORK)
+            if (roleName === 'scout' && energy >= 800) {
+                body = [CLAIM, CARRY, CARRY, MOVE, WORK] //800 energy
+            } else if (roleName === 'warrior' && energy >= 460) {
+                body = [TOUGH, TOUGH, MOVE, MOVE, ATTACK, ATTACK]
+            } else if (!(roleName in specificJobs)) {
+                if (energy > 300) {
+                    body = [MOVE,WORK,WORK,CARRY]
+                }else{
+                    body = [MOVE,WORK,CARRY]
                 }
-                for (let i = 0; i < numberOfParts; i++) {
-                    body.push(CARRY)
-                }
-                for (let i = 0; i < numberOfParts; i++) {
-                    body.push(MOVE)
-                }
-                if(numberOfParts < 2){
-                    body = [WORK,CARRY,MOVE]
-                }
+
             }
-            const creepName = roleName
-            const creepNamex = creepName + Math.floor(Math.random() * 100)+1 
+            const suffix = Math.floor(Math.random() * 100) + 1
+            const creepNameX = `${roleName}${suffix}`
             // create creep with the created body and the given role
-            return this.createCreep(body, creepNamex, { role: roleName, working: false })
+            return this.createCreep(body, creepNameX, { role: roleName, working: false })
         }
 }
