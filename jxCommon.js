@@ -97,19 +97,6 @@ var jxCommon = {
         }
 
     },
-    findGoSpawnToDeposit(creep) {
-        let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-            filter: (s) => {
-                return (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION ) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0
-            }
-        })
-        if (extension != null) {
-            if (creep.transfer(extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.say('⚡ dep', false)
-                creep.moveTo(extension,{visualizePathStyle: { stroke: '#74FE63' }})
-            }
-        }
-    },
     findGoStructuresToDeposit(creep) {
         let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: (s) => {
@@ -131,7 +118,25 @@ var jxCommon = {
             }
         }
     },
+    findGoSpawnToDeposit(creep) {
+        const myStructuresToDeposit = [STRUCTURE_SPAWN,STRUCTURE_EXTENSION]
+        let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+            filter: (s) => {
+                return _.includes(myStructuresToDeposit,s.structureType) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+            }
+        })
+        if (extension != null) {
+            if (creep.transfer(extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.say('⚡ dep', false)
+                creep.moveTo(extension,{visualizePathStyle: { stroke: '#74FE63' }})
+            }
+        }else{
+            //if all the "My_Structures are full find neutral structures to deposit energy."
+            this.findGoStructuresToDeposit(creep)
+        }
+    },
     equalizeEnergyBetweenStorages: creep => {
+        // fill the deposit till is full after that start to fill the my_structure deposits
         if (creep.carry.energy < creep.carryCapacity) {
             //Container isn't considered your structure that's why we don't use FIND_MY_STRUCTURE!
             const storage = creep.pos.findClosestByRange(FIND_STRUCTURES, {

@@ -2,15 +2,10 @@ let jxCommon = require("jxCommon")
 const optionsVisual = { reusePath: 50, visualizePathStyle: { stroke: '#74FE63' } }
 
 function pickupEnergy(creep) {
-    if (creep.carry.energy < creep.carryCapacity) {
-        var energy = creep.room.find(FIND_DROPPED_RESOURCES)
-
-        if (undefined != energy) {
-            if (energy.length > 0) {
-                creep.moveTo(energy[0], optionsVisual)
-                creep.say('Found ⚡', false)
-                creep.pickup(energy[0])
-            }
+    const target = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES);
+    if (target) {
+        if (creep.pickup(target) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(target);
         }
     }
 }
@@ -45,9 +40,11 @@ var roleHarvester = {
                         jxCommon.findPlaceToHarvest(creep)
                     } else {
                         jxCommon.goToHarvest(creep)
+                        pickupEnergy(creep)
                     }
                 }
             } catch (error) {
+                console.log(error)
                 creep.say('PlaceFlag1', false)
             }
 

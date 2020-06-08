@@ -22,7 +22,7 @@ var roleBuilder = {
 			} else if (Game.flags[creep.memory.FlagIr].room == creep.room) {
 				var targets = creep.room.find(FIND_CONSTRUCTION_SITES)
 				if (targets.length > 0 && creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(targets[0], { visualizePathStyle: { stroke: '#CCC' } })
+					creep.moveTo(targets[0], { visualizePathStyle: { stroke: '#ffdf01' } })
 				}
 			}
 		}

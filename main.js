@@ -14,18 +14,24 @@ var _ = require('lodash')
 const flagAttack = 'atacar'
 const flagToConstruct = 'Flag1'
 const harvestersCnt = 6 //Give priority to Harvester
-const upgraderCnt = 1
+const upgraderCnt = 2
 const engineersCnt = 1
 const warriorsCnt = 0
 const scoutsCnt = 0
 const wallersCnt = 0
-const equalizerCnt = 0
+const equalizerCnt = 1
 var buildersCnt = 2
 var flagClaim = 'claim'
 let SECONDS = 60
 
 Memory.flagToConstruct = flagToConstruct
 Memory.flagToConstructSpawn = 'spawn_create'
+//Creates a super creep
+Memory.createSuperCreepHarvester = false
+Memory.createSuperCreepUpgrader = false
+Memory.createSuperCreepWaller = false
+Memory.createSuperCreepBuilder = false
+
 
 //json Obj to store sources in Memory
 if (Memory.sources === undefined) {
@@ -54,7 +60,7 @@ module.exports.loop = function () {
     var wallers = _.filter(Game.creeps, (creep) => creep.memory.role == 'waller')
     var equalizers = _.filter(Game.creeps, (creep) => creep.memory.role == 'equalizer')
 
-    //Pupulation Control ------------------------------------------------------
+    //Population Control ------------------------------------------------------
     for (let spawnX in Game.spawns) {
         //Get the amount of constructions sites and then set the builder value
         var targetsConstructions = Game.spawns[spawnX].room.find(FIND_CONSTRUCTION_SITES)
@@ -99,12 +105,12 @@ module.exports.loop = function () {
         Memory.tFuture = timeNow + SECONDS
     } else if (timeNow > Memory.tFuture) {
         console.log('#--------STATUS----------#')
-        console.log('hav:' + harvesters.length)
-        console.log('bui:' + builders.length)
-        console.log('upg:' + upgraders.length)
-        console.log('eng:' + engineers.length)
-        console.log('war:' + warriors.length)
-        console.log(`equ: ${equalizers.length}`)
+        console.log(`hav: ${harvesters.length}/${harvestersCnt}`)
+        console.log(`bld: ${builders.length}/${buildersCnt}`)
+        console.log(`upg: ${upgraders.length}/${upgraderCnt}`)
+        console.log(`eng: ${engineers.length}/${engineersCnt}`)
+        console.log(`war: ${warriors.length}/${warriorsCnt}`)
+        console.log(`equ: ${equalizers.length}/${equalizerCnt}`)
         console.log('total:' + creepCount)
         console.log('total energies:' + Memory.energyInStock)
         console.log('#------------------------#')
