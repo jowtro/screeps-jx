@@ -1,14 +1,4 @@
 let jxCommon = require("jxCommon")
-const optionsVisual = { reusePath: 50, visualizePathStyle: { stroke: '#74FE63' } }
-
-function pickupEnergy(creep) {
-    const target = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES);
-    if (target) {
-        if (creep.pickup(target) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(target);
-        }
-    }
-}
 
 var roleHarvester = {
 
@@ -21,10 +11,17 @@ var roleHarvester = {
         //IF hasn't energy it will be mining...
         if (!creep.memory.harvesting && creep.carry.energy === 0) {
             creep.memory.harvesting = true
+            jxCommon.pickupEnergyFromGround(creep)
         }
         //If the creep is full..
         if (creep.memory.harvesting && (creep.carry.energy == creep.carryCapacity)) {
             creep.memory.harvesting = false
+        }
+        //has energy to get
+        if(creep.memory.pickingEnergy && (creep.carry.energy < creep.carryCapacity)){
+            jxCommon.pickupEnergyFromGround(creep)
+        }else{
+            creep.memory.pickingEnergy = false
         }
         //END-----Work conditions---------------------#
 
@@ -40,7 +37,6 @@ var roleHarvester = {
                         jxCommon.findPlaceToHarvest(creep)
                     } else {
                         jxCommon.goToHarvest(creep)
-                        pickupEnergy(creep)
                     }
                 }
             } catch (error) {
@@ -49,9 +45,9 @@ var roleHarvester = {
             }
 
         }
-        else {
+        else if(!creep.memory.pickingEnergy) {
             //If it's not harvesting anymore it will find a place to drop its resources
-            jxCommon.equalizeEnergyBetweenStorages(creep)
+            jxCommon.findGoStructuresToDeposit(creep)
         }
     }
 }

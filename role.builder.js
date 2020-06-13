@@ -3,6 +3,11 @@ var roleBuilder = {
 
 	/** @param {Creep} creep **/
 	run: function (creep) {
+		//Not enough energy to build, stand by. 
+		if(Memory.energyInStock < 300 && creep.carry.energy == 0){
+			creep.say('😐',false)
+			return
+		}
 		//If no energy set building to false
 		if (creep.memory.building && creep.carry.energy == 0) {
 			creep.memory.building = false

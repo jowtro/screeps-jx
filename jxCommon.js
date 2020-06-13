@@ -1,6 +1,8 @@
 /*
- * Jonnas Schlottfeldt 21/08/2016
+ * Jonnas Schlottfeldt 01/06/2020
  * */
+const myStructuresToDeposit = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION]
+const myContainersAndWeapons = [STRUCTURE_CONTAINER, STRUCTURE_TOWER]
 var jxCommon = {
     //IF CREEPS are standing still.
     creepDoingNothing: creep => {
@@ -76,80 +78,130 @@ var jxCommon = {
             creep.moveTo(Game.getObjectById(creep.memory.currentSource), { visualizePathStyle: { stroke: '#CCC' } })
         }
     },
-    getEnergy: creep => {
-        const extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-            filter: (s) => {
-                return (s.structureType === STRUCTURE_EXTENSION) && s.energy > 0
-            }
-        })
-        //Container isn't considered your structure that's why we don't use FIND_MY_STRUCTURE!
+    getEnergyFromContainers: creep => {
         const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: (s) => {
                 return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] > 0
             }
         })
         //console.log(`Extension: ${extension} Container: ${container}`)
-        if (extension != null || container != null) {
-            if (creep.withdraw(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.say('⚡', false)
-                creep.moveTo(container != null ? container : extension)
+        if (container != null) {
+            if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.say('cont⚡', false)
+                creep.moveTo(container)
+            }
+        }
+    },
+    getEnergy: creep => {
+        if (creep.room.storage != undefined && creep.room.storage.store[RESOURCE_ENERGY] > 0) {
+            if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.say('get 🔋', false)
+                creep.moveTo(creep.room.storage)
+            }
+        } else {
+            //GET ENERGY FROM SPAWN EXTENSIONS OR CONTAINERS
+            let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+                filter: (s) => {
+                    return myStructuresToDeposit.includes(s.structureType) && s.store[RESOURCE_ENERGY] > 0
+                }
+            })
+            //Container isn't considered your structure that's why we don't use FIND_MY_STRUCTURE!
+            const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                filter: (s) => {
+                    return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] > 0
+                }
+            })
+            //console.log(`Extension: ${extension} Container: ${container}`)
+            if (extension != null || container != null) {
+                if (creep.withdraw(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.say('⚡', false)
+                    creep.moveTo(container != null ? container : extension)
+                }
             }
         }
 
+
+    },
+    pickupEnergyFromGround(creep) {
+        const target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+        if (target) {
+            creep.memory.harvesting = false
+            creep.memory.pickingEnergy = true
+            if (creep.pickup(target) == ERR_NOT_IN_RANGE) {
+                creep.say('pick ⚡', false)
+                creep.moveTo(target, { visualizePathStyle: { stroke: '#CCC' } })
+            }
+        } else {
+            creep.memory.harvesting = true
+            creep.memory.pickingEnergy = false
+        }
     },
     findGoStructuresToDeposit(creep) {
-        let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (s) => {
-                return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] < s.store.getCapacity()
-            }
-        })
-        let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-            filter: (s) => {
-                return (s.structureType === STRUCTURE_SPAWN ||
-                    s.structureType === STRUCTURE_EXTENSION ||
-                    s.structureType === STRUCTURE_TOWER) && s.energy < s.energyCapacity
-            }
-        })
-    
-        if (extension != null || container != null) {
+        let container = null
+        let extension = null
+
+        if (Memory.GameDepositEnergyToMyContainers) {
+            container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                filter: (s) => {
+                    return myContainersAndWeapons.includes(s.structureType) && s.store[RESOURCE_ENERGY] < s.store.getCapacity()
+                }
+            })
+        }
+
+        if (Memory.GameDepositEnergyToMySpawn) {
+            extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+                filter: (s) => {
+                    return (s.structureType === STRUCTURE_SPAWN ||
+                        s.structureType === STRUCTURE_EXTENSION ||
+                        s.structureType === STRUCTURE_TOWER) && s.energy < s.energyCapacity
+                }
+            })
+        }
+
+        if (extension != null || container != null && !Memory.GameDepositEnergyToMyStorage) {
             if (creep.transfer(container != null ? container : extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.say('fsd ⚡', false)
+                creep.say('dep 🔋', false)
                 creep.moveTo(container != null ? container : extension)
+            }
+        } else if (creep.room.storage != undefined) {
+            if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.say('sto 🔋', false)
+                creep.moveTo(creep.room.storage)
             }
         }
     },
     findGoSpawnToDeposit(creep) {
-        const myStructuresToDeposit = [STRUCTURE_SPAWN,STRUCTURE_EXTENSION]
         let extension = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
             filter: (s) => {
-                return _.includes(myStructuresToDeposit,s.structureType) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+                return myStructuresToDeposit.includes(s.structureType) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0
             }
         })
+        //To accelerate the process of storage energy until 600 deposit in container
+        //You must have containers near the energy sources 
+        //if (extension != null && Memory.energyInStock <= 2000) {
         if (extension != null) {
             if (creep.transfer(extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.say('⚡ dep', false)
-                creep.moveTo(extension,{visualizePathStyle: { stroke: '#74FE63' }})
+                creep.say('🔋 spawn', false)
+                creep.moveTo(extension, { visualizePathStyle: { stroke: '#74FE63' } })
             }
-        }else{
+        } else {
             //if all the "My_Structures are full find neutral structures to deposit energy."
             this.findGoStructuresToDeposit(creep)
         }
     },
     equalizeEnergyBetweenStorages: creep => {
+        let hasEnergyToWithdraw = true
         // fill the deposit till is full after that start to fill the my_structure deposits
         if (creep.carry.energy < creep.carryCapacity) {
             //Container isn't considered your structure that's why we don't use FIND_MY_STRUCTURE!
-            const storage = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (s) => {
-                    return (s.structureType === STRUCTURE_CONTAINER) && s.store[RESOURCE_ENERGY] > 0
-                }
-            })
-            if (creep.withdraw(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.say('⚡ eq', false)
-                creep.moveTo(storage)
-            }
+            jxCommon.getEnergy(creep)
         } else {
+            hasEnergyToWithdraw = false
+        }
+
+        if (!hasEnergyToWithdraw) {
             jxCommon.findGoSpawnToDeposit(creep)
+
         }
     }
 }

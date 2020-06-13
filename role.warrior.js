@@ -116,7 +116,7 @@ function goToWar(creep) {
             //If already there find the enemy
             creep.moveTo(Game.flags[creep.memory.FlagIr])
             if (Game.flags[creep.memory.FlagIr].room != undefined) {
-                //console.log('Find enemies.')
+                console.log('Find enemies.')
                 findAndAttack(creep)
             }
         }

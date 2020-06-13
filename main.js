@@ -14,15 +14,16 @@ var _ = require('lodash')
 const flagAttack = 'atacar'
 const flagToConstruct = 'Flag1'
 const harvestersCnt = 6 //Give priority to Harvester
-const upgraderCnt = 2
+const upgraderCnt = 1
 const engineersCnt = 1
 const warriorsCnt = 0
 const scoutsCnt = 0
 const wallersCnt = 0
-const equalizerCnt = 1
-var buildersCnt = 2
+let equalizerCnt = 0
+let buildersCnt = 1
 var flagClaim = 'claim'
-let SECONDS = 60
+let SECONDS = 30
+const myContainers = [STRUCTURE_CONTAINER]
 
 Memory.flagToConstruct = flagToConstruct
 Memory.flagToConstructSpawn = 'spawn_create'
@@ -31,8 +32,8 @@ Memory.createSuperCreepHarvester = false
 Memory.createSuperCreepUpgrader = false
 Memory.createSuperCreepWaller = false
 Memory.createSuperCreepBuilder = false
-
-
+Memory.GameDepositEnergyToMyContainers = true
+Memory.GameDepositEnergyToMySpawn = false
 //json Obj to store sources in Memory
 if (Memory.sources === undefined) {
     Memory.sources = {
@@ -64,7 +65,7 @@ module.exports.loop = function () {
     for (let spawnX in Game.spawns) {
         //Get the amount of constructions sites and then set the builder value
         var targetsConstructions = Game.spawns[spawnX].room.find(FIND_CONSTRUCTION_SITES)
-        buildersCnt = targetsConstructions.length > 0 ? 2 : 0
+        buildersCnt = targetsConstructions.length > 0 ? 1 : 0
         Memory.energyInStock = Game.spawns[spawnX].room.energyAvailable
         if (Memory.energyInStock > 100) {
             // if not enough harvesters
@@ -113,6 +114,7 @@ module.exports.loop = function () {
         console.log(`equ: ${equalizers.length}/${equalizerCnt}`)
         console.log('total:' + creepCount)
         console.log('total energies:' + Memory.energyInStock)
+        console.log(`Total Containers Full: ${Memory.fullContainers}`)
         console.log('#------------------------#')
         Memory.tFuture = timeNow + SECONDS
     }
@@ -167,11 +169,51 @@ module.exports.loop = function () {
             roleEqualizer.run(creep)
         }
     }
+    //Tower AI
     //For each room
     for (let s in Game.spawns) {
+        const containers = Game.spawns[s].room.find(FIND_STRUCTURES, {
+            filter: (s) => {
+                return myContainers.includes(s.structureType)
+            }
+        })
+        const fullContainers = containers.filter(s => {
+            return myContainers.includes(s.structureType) && s.store[RESOURCE_ENERGY] === s.store.getCapacity()
+        })
+        const emptyContainers = containers.filter(s => {
+            return myContainers.includes(s.structureType) && s.store[RESOURCE_ENERGY] === 0
+        })
+
+        const areContainersFull = fullContainers.length == containers.length
+        const areContainersEmpty = emptyContainers.length == containers.length
+        //console.log('areContainersEmpty ' + areContainersEmpty, 'areContainersFull ' + areContainersFull)
+        if (areContainersFull) {
+            Memory.GameDepositEnergyToMyContainers = false
+            Memory.GameDepositEnergyToMySpawn = true
+            Memory.GameDepositEnergyToMyStorage = true
+            equalizerCnt = 2 // if container is full it needs to be empty
+        } else if (areContainersEmpty) {
+            Memory.GameDepositEnergyToMyContainers = true
+            Memory.GameDepositEnergyToMySpawn = true
+            Memory.GameDepositEnergyToMyStorage = false
+            equalizerCnt = 0
+        } else {
+            Memory.GameDepositEnergyToMyContainers = true
+            Memory.GameDepositEnergyToMySpawn = true
+            Memory.GameDepositEnergyToMyStorage = false
+        }
+
+
+
+        if (Memory.energyInStock > 1100) {
+            Memory.GameDepositEnergyToMyContainers = true
+            Memory.GameDepositEnergyToMySpawn = false
+        }
+
+
         let room = Game.spawns[s].room.name
         //STRATEGY
         roleTower.run(room)
+        Memory.fullContainers = fullContainers.length
     }
-
 }
